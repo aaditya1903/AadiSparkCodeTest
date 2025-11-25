@@ -18,6 +18,42 @@
     }
   }
 
+  async function handleSubmit(event: SubmitEvent) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target as HTMLFormElement);
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+
+    if (!title || !description) {
+      alert("Please fill in both title and description");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8080/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ title, description }),
+      });
+
+      if (response.status !== 200) {
+        console.error("Error creating todo. Response status not 200");
+        return;
+      }
+
+      // Clear the form
+      (event.target as HTMLFormElement).reset();
+
+      // Refresh the todo list
+      await fetchTodos();
+    } catch (e) {
+      console.error("Could not connect to server. Ensure it is running.", e);
+    }
+  }
+
   // Initially fetch todos on page load
   $effect(() => {
     fetchTodos();
@@ -36,10 +72,10 @@
   </div>
 
   <h2 class="todo-list-form-header">Add a Todo</h2>
-  <form class="todo-list-form">
+  <form class="todo-list-form" onsubmit={handleSubmit}>
     <input placeholder="Title" name="title" />
     <input placeholder="Description" name="description" />
-    <button>Add Todo</button>
+    <button type="submit">Add Todo</button>
   </form>
 </main>
 
